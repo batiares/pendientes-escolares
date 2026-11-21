@@ -2,31 +2,52 @@ package com.escuela.pendientes
 
 import org.json.JSONArray
 import org.json.JSONObject
-import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.YearMonth
 
-data class Item(val id: String, val title: String, val due: LocalDate, val done: Boolean = false, val custom: Boolean = false)
+enum class Kind(val emoji: String, val label: String) {
+    DOC("📄", "Documento"), EVENT("🎉", "Evento"), REMINDER("🔔", "Recordatorio"),
+}
+
+/**
+ * Algo en el calendario. Los documentos avisan 2 días antes; eventos y recordatorios avisan
+ * [remind] minutos antes de su hora (null = sin aviso).
+ */
+data class Item(
+    val id: String, val title: String, val due: LocalDate, val done: Boolean = false, val custom: Boolean = false,
+    val kind: Kind = Kind.DOC, val time: LocalTime? = null, val remind: Int? = null, val notes: String = "",
+)
 
 /** Días antes de la entrega en que empiezan los recordatorios (2, 1 y el mismo día). */
 const val REMIND_DAYS = 2
 
+/** Hora del aviso para lo que no tiene hora (todo el día). */
+val ALL_DAY_HOUR: LocalTime = LocalTime.of(8, 0)
+
 fun daysLeft(item: Item, today: LocalDate): Long = item.due.toEpochDay() - today.toEpochDay()
 
-fun needsReminder(item: Item, today: LocalDate): Boolean = !item.done && daysLeft(item, today) in 0..REMIND_DAYS
+fun needsReminder(item: Item, today: LocalDate): Boolean =
+    item.kind == Kind.DOC && !item.done && daysLeft(item, today) in 0..REMIND_DAYS
 
-// shortcut: no descuenta días festivos de la SEP; cada fecha se puede cambiar en la app.
+/** Momento exacto del aviso de un evento o recordatorio; null si no lleva. */
+fun alarmAt(item: Item): LocalDateTime? =
+    if (item.kind == Kind.DOC || item.remind == null) null
+    else item.due.atTime(item.time ?: ALL_DAY_HOUR).minusMinutes(item.remind.toLong())
+
+// Días hábiles según el calendario SEP: se saltan fines de semana, suspensiones, vacaciones y receso.
 private fun firstWeekday(ym: YearMonth): LocalDate =
-    generateSequence(ym.atDay(1)) { it.plusDays(1) }.first { it.dayOfWeek < DayOfWeek.SATURDAY }
+    generateSequence(ym.atDay(1)) { it.plusDays(1) }.first { !isOffDay(it) }
 
 private fun lastWeekday(ym: YearMonth): LocalDate =
-    generateSequence(ym.atEndOfMonth()) { it.minusDays(1) }.first { it.dayOfWeek < DayOfWeek.SATURDAY }
+    generateSequence(ym.atEndOfMonth()) { it.minusDays(1) }.first { !isOffDay(it) }
 
 private val explicitDay = Regex("""\s*\((\d{1,2}) [a-zé]+\)""")
 
 /**
  * Fecha de entrega: la que trae el documento entre paréntesis, "Agenda inicial" el primer día hábil
- * del mes y todo lo demás el último día hábil del mes.
+ * del mes y todo lo demás el último día hábil del mes (según el calendario SEP).
  */
 fun dueFor(rawTitle: String, ym: YearMonth): Pair<String, LocalDate> {
     explicitDay.find(rawTitle)?.let { m ->
@@ -115,13 +136,19 @@ fun catalog(): List<Item> = months.flatMap { (ym, titles) ->
 
 fun toJson(items: List<Item>): String = JSONArray(items.map {
     JSONObject().put("id", it.id).put("title", it.title).put("due", it.due.toString())
-        .put("done", it.done).put("custom", it.custom)
+        .put("done", it.done).put("custom", it.custom).put("kind", it.kind.name)
+        .put("time", it.time?.toString()).put("remind", it.remind).put("notes", it.notes)
 }).toString()
 
+// Los campos nuevos son opcionales para no perder lo que ya estaba guardado en el celular.
 fun fromJson(s: String): List<Item> = JSONArray(s).let { a ->
     (0 until a.length()).map { i ->
         a.getJSONObject(i).run {
-            Item(getString("id"), getString("title"), LocalDate.parse(getString("due")), getBoolean("done"), optBoolean("custom"))
+            Item(
+                getString("id"), getString("title"), LocalDate.parse(getString("due")), getBoolean("done"), optBoolean("custom"),
+                Kind.valueOf(optString("kind", "DOC")), optString("time").takeIf { it.isNotEmpty() }?.let(LocalTime::parse),
+                if (has("remind")) getInt("remind") else null, optString("notes"),
+            )
         }
     }
 }
