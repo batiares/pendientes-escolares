@@ -1,0 +1,5 @@
+<resources>
+    <style name="Theme.Pendientes" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">#FFFFF8EE</item>
+    </style>
+</resources>
