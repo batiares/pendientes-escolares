@@ -57,5 +57,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "v${{ github.run_number }}" pendientes.apk \
-            --title "Pendientes v0.1.${{ github.run_number }}" \
+            --title "Pendientes v1.0.${{ github.run_number }}" \
             --notes "Compilado automáticamente desde ${{ github.sha }}."

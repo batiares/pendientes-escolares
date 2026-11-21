@@ -95,11 +95,15 @@ fun CalendarScreen(
                     Modifier.padding(top = 12.dp).fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Color(0xFFFFF1C1))
                         .border(2.dp, Sun, RoundedCornerShape(20.dp)).padding(14.dp),
                 ) {
-                    if (late.isNotEmpty()) Text("⚠️ ${late.size} documentos atrasados · ver el primero", color = Late,
-                        fontWeight = FontWeight.Bold, modifier = Modifier.clickable { select(late.first().due) }.padding(vertical = 4.dp))
-                    soon.forEach {
-                        Text("⏰ Entregar ${whenText(daysLeft(it, today))}: ${it.title}", color = Soon, fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.clickable { select(it.due) }.padding(vertical = 3.dp))
+                    if (late.isNotEmpty()) Text("⚠️ " + (if (late.size == 1) "1 documento atrasado" else "${late.size} documentos atrasados") +
+                        " · ver", color = Late, fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clickable { select(late.first().due) }.padding(vertical = 4.dp))
+                    // Una línea por fecha: a fin de mes se juntan muchos documentos el mismo día.
+                    soon.groupBy { it.due }.forEach { (due, docsDue) ->
+                        Text("⏰ Entregar ${whenText(daysLeft(docsDue.first(), today))} (${due.format(dayFmt)}): " +
+                            if (docsDue.size == 1) docsDue.first().title else "${docsDue.size} documentos · ver",
+                            color = Soon, fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.clickable { select(due) }.padding(vertical = 3.dp))
                     }
                 }
             }
@@ -229,7 +233,7 @@ private fun Legend(month: YearMonth) {
     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp),
         modifier = Modifier.padding(top = 10.dp)) {
         Kind.entries.forEach { k -> Chip(k.color, "${k.emoji} ${k.label}", dot = true) }
-        types.forEach { t -> Chip(Color(t.color), "${t.emoji} ${t.label}") }
+        types.forEach { t -> Chip(Color(t.color), "${t.emoji} ${t.short}") }
     }
 }
 

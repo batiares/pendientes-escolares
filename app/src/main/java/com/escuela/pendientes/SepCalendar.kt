@@ -4,19 +4,19 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 
 /** Tipos de día del calendario oficial SEP. [strong]: se pinta el día lleno con letra blanca. */
-enum class Sep(val emoji: String, val label: String, val color: Long, val strong: Boolean, val noClasses: Boolean = false) {
-    SUSPENSION("🚫", "Suspensión de labores (sin clases)", 0xFFFF4D5A, true, true),
-    CTE("👩‍🏫", "Consejo Técnico Escolar (sin clases)", 0xFFF06BA8, true, true),
-    CTE_INTENSIVO("👩‍🏫", "Consejo Técnico fase intensiva", 0xFF8E244D, true, true),
-    VACACIONES("🏖️", "Vacaciones", 0xFF26B8D6, true, true),
-    RECESO("🌴", "Receso de clases", 0xFF43A55A, true, true),
-    INICIO("🎒", "Inicio de clases", 0xFF3A2E5C, true),
-    FIN("🎓", "Fin de clases", 0xFF3A2E5C, true),
-    CALIFICACIONES("📝", "Registro de calificaciones", 0xFFFF9F1C, false),
-    RESULTADOS("📊", "Registro y comunicación de resultados", 0xFFF2B705, false),
-    PREINSCRIPCION("🧒", "Preinscripción ciclo 2027-2028", 0xFF8BC34A, false),
-    JORNADA("💜", "Jornada contra el abuso sexual y maltrato infantil", 0xFF7E57C2, false),
-    CONMEMORATIVO("🇲🇽", "Día conmemorativo o de reflexión", 0xFFFFC93C, false),
+enum class Sep(val emoji: String, val label: String, val short: String, val color: Long, val strong: Boolean, val noClasses: Boolean = false) {
+    SUSPENSION("🚫", "Suspensión de labores (sin clases)", "Sin clases", 0xFFFF4D5A, true, true),
+    CTE("👩‍🏫", "Consejo Técnico Escolar (sin clases)", "Consejo Técnico", 0xFFF06BA8, true, true),
+    CTE_INTENSIVO("👩‍🏫", "Consejo Técnico fase intensiva", "CTE intensivo", 0xFF8E244D, true, true),
+    VACACIONES("🏖️", "Vacaciones", "Vacaciones", 0xFF26B8D6, true, true),
+    RECESO("🌴", "Receso de clases", "Receso", 0xFF43A55A, true, true),
+    INICIO("🎒", "Inicio de clases", "Inicio de clases", 0xFF3A2E5C, true),
+    FIN("🎓", "Fin de clases", "Fin de clases", 0xFF3A2E5C, true),
+    CALIFICACIONES("📝", "Registro de calificaciones", "Calificaciones", 0xFFFF9F1C, false),
+    RESULTADOS("📊", "Registro y comunicación de resultados", "Resultados", 0xFFF2B705, false),
+    PREINSCRIPCION("🧒", "Preinscripción ciclo 2027-2028", "Preinscripción", 0xFF8BC34A, false),
+    JORNADA("💜", "Jornada contra el abuso sexual y maltrato infantil", "Jornada", 0xFF7E57C2, false),
+    CONMEMORATIVO("🇲🇽", "Día conmemorativo o de reflexión", "Conmemorativo", 0xFFFFC93C, false),
 }
 
 data class SepDay(val date: LocalDate, val type: Sep, val name: String)
